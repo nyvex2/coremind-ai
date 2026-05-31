@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Page() {
+  const [messages, setMessages] = useState([
+    { role: "bot", text: "Ready when you are." },
+  ]);
+  const [input, setInput] = useState("");
+
   useEffect(() => {
-    // create shooting stars dynamically
     const container = document.getElementById("stars");
 
     const createStar = () => {
@@ -16,71 +20,145 @@ export default function Page() {
 
       container.appendChild(star);
 
-      setTimeout(() => {
-        star.remove();
-      }, 2000);
+      setTimeout(() => star.remove(), 1200);
     };
 
-    const interval = setInterval(createStar, 400);
-
+    const interval = setInterval(createStar, 500);
     return () => clearInterval(interval);
   }, []);
 
+  const sendMessage = () => {
+    if (!input.trim()) return;
+
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text: input },
+      { role: "bot", text: "..." },
+    ]);
+
+    setInput("");
+  };
+
   return (
-    <div className="relative min-h-screen overflow-hidden text-white bg-[#05010a]">
+    <div className="screen">
+      <div className="glow" />
+      <div id="stars" className="stars" />
 
-      {/* galaxy glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.25),transparent_60%)]" />
+      <div className="center">
+        <div className="chat">
+          <div className="top">💬 Chat</div>
 
-      {/* animated stars layer */}
-      <div id="stars" className="absolute inset-0 pointer-events-none" />
-
-      {/* floating chat UI */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen">
-        <div className="chatCard">
-          <div className="header">🌌 Nebula AI</div>
           <div className="messages">
-            <p>Hey 👋 I’m your space AI</p>
-            <p>Ask me anything...</p>
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`msg ${m.role === "user" ? "user" : "bot"}`}
+              >
+                {m.text}
+              </div>
+            ))}
           </div>
 
-          <div className="inputBox">
-            <input placeholder="Type a message..." />
-            <button>Send ⚡</button>
+          <div className="inputRow">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type..."
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            />
+            <button onClick={sendMessage}>Send</button>
           </div>
         </div>
       </div>
 
-      {/* styles */}
       <style jsx>{`
-        .chatCard {
-          width: 360px;
-          backdrop-filter: blur(20px);
-          background: rgba(20, 10, 40, 0.6);
-          border: 1px solid rgba(168, 85, 247, 0.3);
-          border-radius: 20px;
-          padding: 16px;
-          box-shadow: 0 0 40px rgba(168, 85, 247, 0.2);
-          animation: float 6s ease-in-out infinite;
+        .screen {
+          min-height: 100vh;
+          width: 100%;
+          overflow: hidden;
+          background: #05010a;
+          color: white;
+          position: relative;
+          font-family: sans-serif;
         }
 
-        .header {
-          font-size: 18px;
-          font-weight: bold;
-          margin-bottom: 10px;
+        .glow {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(
+            circle at center,
+            rgba(160, 80, 255, 0.25),
+            transparent 60%
+          );
+        }
+
+        .stars {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
+
+        .center {
+          position: relative;
+          z-index: 10;
+          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 16px;
+        }
+
+        /* 🔥 RESPONSIVE CHAT */
+        .chat {
+          width: 100%;
+          max-width: 420px;
+          height: 70vh;
+          display: flex;
+          flex-direction: column;
+
+          background: rgba(20, 10, 40, 0.6);
+          border: 1px solid rgba(160, 80, 255, 0.25);
+          border-radius: 18px;
+          backdrop-filter: blur(18px);
+          box-shadow: 0 0 40px rgba(160, 80, 255, 0.15);
+        }
+
+        .top {
+          padding: 12px;
+          font-weight: 600;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .messages {
-          height: 180px;
-          overflow: auto;
-          font-size: 14px;
-          opacity: 0.9;
+          flex: 1;
+          overflow-y: auto;
+          padding: 12px;
         }
 
-        .inputBox {
+        .msg {
+          padding: 8px 10px;
+          margin-bottom: 8px;
+          border-radius: 10px;
+          font-size: 14px;
+          max-width: 85%;
+          word-wrap: break-word;
+        }
+
+        .user {
+          background: rgba(124, 58, 237, 0.35);
+          margin-left: auto;
+        }
+
+        .bot {
+          background: rgba(255, 255, 255, 0.08);
+          margin-right: auto;
+        }
+
+        .inputRow {
           display: flex;
           gap: 8px;
-          margin-top: 10px;
+          padding: 12px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         input {
@@ -89,20 +167,19 @@ export default function Page() {
           border-radius: 10px;
           border: none;
           outline: none;
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.08);
           color: white;
         }
 
         button {
-          padding: 10px 12px;
+          padding: 10px 14px;
           border-radius: 10px;
           border: none;
-          background: purple;
+          background: #7c3aed;
           color: white;
           cursor: pointer;
         }
 
-        /* shooting stars */
         .shooting-star {
           position: absolute;
           width: 2px;
@@ -119,20 +196,11 @@ export default function Page() {
             opacity: 1;
           }
           100% {
-            transform: translate(300px, 300px) rotate(45deg);
+            transform: translate(250px, 250px) rotate(45deg);
             opacity: 0;
-          }
-        }
-
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-12px);
           }
         }
       `}</style>
     </div>
   );
-}
+    }
