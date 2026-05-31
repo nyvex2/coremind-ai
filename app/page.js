@@ -1,157 +1,138 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 
 export default function Page() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    // create shooting stars dynamically
+    const container = document.getElementById("stars");
 
-  async function send() {
-    if (!input.trim()) return;
+    const createStar = () => {
+      const star = document.createElement("div");
+      star.className = "shooting-star";
 
-    const newMessages = [...messages, { role: "user", content: input }];
+      star.style.left = Math.random() * window.innerWidth + "px";
+      star.style.top = Math.random() * window.innerHeight * 0.5 + "px";
 
-    setMessages(newMessages);
-    setInput("");
-    setLoading(true);
+      container.appendChild(star);
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: "" },
-    ]);
+      setTimeout(() => {
+        star.remove();
+      }, 2000);
+    };
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: newMessages }),
-    });
+    const interval = setInterval(createStar, 400);
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-
-    let text = "";
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-
-      text += decoder.decode(value);
-
-      setMessages((prev) => {
-        const copy = [...prev];
-        copy[copy.length - 1].content = text;
-        return copy;
-      });
-    }
-
-    setLoading(false);
-  }
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>CoreMind AI</h1>
+    <div className="relative min-h-screen overflow-hidden text-white bg-[#05010a]">
 
-      <div style={styles.chatBox}>
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              ...styles.message,
-              alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-              backgroundColor:
-                m.role === "user"
-                  ? "rgba(168,85,247,0.3)"
-                  : "rgba(255,255,255,0.08)",
-            }}
-          >
-            {m.content}
+      {/* galaxy glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.25),transparent_60%)]" />
+
+      {/* animated stars layer */}
+      <div id="stars" className="absolute inset-0 pointer-events-none" />
+
+      {/* floating chat UI */}
+      <div className="relative z-10 flex items-center justify-center min-h-screen">
+        <div className="chatCard">
+          <div className="header">🌌 Nebula AI</div>
+          <div className="messages">
+            <p>Hey 👋 I’m your space AI</p>
+            <p>Ask me anything...</p>
           </div>
-        ))}
+
+          <div className="inputBox">
+            <input placeholder="Type a message..." />
+            <button>Send ⚡</button>
+          </div>
+        </div>
       </div>
 
-      <div style={styles.inputBox}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Message CoreMind AI..."
-          style={styles.input}
-        />
+      {/* styles */}
+      <style jsx>{`
+        .chatCard {
+          width: 360px;
+          backdrop-filter: blur(20px);
+          background: rgba(20, 10, 40, 0.6);
+          border: 1px solid rgba(168, 85, 247, 0.3);
+          border-radius: 20px;
+          padding: 16px;
+          box-shadow: 0 0 40px rgba(168, 85, 247, 0.2);
+          animation: float 6s ease-in-out infinite;
+        }
 
-        <button onClick={send} style={styles.button}>
-          {loading ? "..." : "Send"}
-        </button>
-      </div>
+        .header {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 10px;
+        }
+
+        .messages {
+          height: 180px;
+          overflow: auto;
+          font-size: 14px;
+          opacity: 0.9;
+        }
+
+        .inputBox {
+          display: flex;
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        input {
+          flex: 1;
+          padding: 10px;
+          border-radius: 10px;
+          border: none;
+          outline: none;
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+        }
+
+        button {
+          padding: 10px 12px;
+          border-radius: 10px;
+          border: none;
+          background: purple;
+          color: white;
+          cursor: pointer;
+        }
+
+        /* shooting stars */
+        .shooting-star {
+          position: absolute;
+          width: 2px;
+          height: 80px;
+          background: linear-gradient(white, transparent);
+          transform: rotate(45deg);
+          animation: shoot 1.2s linear forwards;
+          opacity: 0.8;
+        }
+
+        @keyframes shoot {
+          0% {
+            transform: translate(0, 0) rotate(45deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(300px, 300px) rotate(45deg);
+            opacity: 0;
+          }
+        }
+
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-12px);
+          }
+        }
+      `}</style>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    height: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    color: "white",
-    fontFamily: "Arial",
-    background: "radial-gradient(circle at top, #1a0033, #000000 70%)",
-    overflow: "hidden",
-  },
-
-  title: {
-    textAlign: "center",
-    padding: "15px",
-    fontSize: "22px",
-    fontWeight: "bold",
-    background: "linear-gradient(90deg, #a855f7, #6366f1)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    textShadow: "0 0 20px rgba(168,85,247,0.5)",
-  },
-
-  chatBox: {
-    flex: 1,
-    padding: "15px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-    overflowY: "auto",
-    background: "rgba(255,255,255,0.02)",
-    backdropFilter: "blur(10px)",
-  },
-
-  message: {
-    padding: "12px",
-    borderRadius: "14px",
-    maxWidth: "75%",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(255,255,255,0.08)",
-  },
-
-  inputBox: {
-    display: "flex",
-    padding: "12px",
-    gap: "10px",
-    background: "rgba(20,20,40,0.6)",
-    backdropFilter: "blur(15px)",
-    borderTop: "1px solid rgba(255,255,255,0.1)",
-  },
-
-  input: {
-    flex: 1,
-    padding: "12px",
-    borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(0,0,0,0.4)",
-    color: "white",
-    outline: "none",
-  },
-
-  button: {
-    padding: "12px 18px",
-    borderRadius: "10px",
-    border: "none",
-    background: "linear-gradient(90deg, #a855f7, #6366f1)",
-    color: "white",
-    cursor: "pointer",
-  },
-};
